@@ -1,0 +1,113 @@
+
+CREATE TABLE cliente (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    endereco VARCHAR(255) NOT NULL,
+    telefone VARCHAR(15) NOT NULL,
+    email VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE veiculo (
+    id SERIAL PRIMARY KEY,
+    placa VARCHAR(10) NOT NULL UNIQUE,
+    modelo VARCHAR(100) NOT NULL,
+    marca VARCHAR(100) NOT NULL,
+    ano INT NOT NULL,
+    id_cliente INT REFERENCES cliente(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE funcionario (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cargo VARCHAR(50) NOT NULL,
+    telefone VARCHAR(15),
+    email VARCHAR(100)
+);
+
+
+CREATE TABLE servico (
+    id SERIAL PRIMARY KEY,
+    tipo VARCHAR(100) NOT NULL,
+    data DATE NOT NULL,
+    valor NUMERIC(10, 2) NOT NULL,
+    id_veiculo INT REFERENCES veiculo(id) ON DELETE CASCADE,
+    id_funcionario INT REFERENCES funcionario(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE peca (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT NOT NULL,
+    preco NUMERIC(10, 2) NOT NULL,
+    quantidade_estoque INT NOT NULL
+);
+
+
+CREATE TABLE servico_peca (
+    id SERIAL PRIMARY KEY,
+    id_servico INT REFERENCES servico(id) ON DELETE CASCADE,
+    id_peca INT REFERENCES peca(id) ON DELETE CASCADE,
+    quantidade_usada INT NOT NULL
+);
+
+
+INSERT INTO cliente (nome, endereco, telefone, email)
+VALUES
+('João da Silva', 'Rua das Flores, 10', '(11) 9999-9999', 'joao.silva@email.com'),
+('Maria de Souza', 'Avenida Brasil, 200', '(21) 8888-8888', 'maria.souza@email.com');
+
+INSERT INTO veiculo (placa, modelo, marca, ano, id_cliente)
+VALUES
+('ABC1234', 'Corolla', 'Toyota', 2020, 1),
+('XYZ5678', 'Civic', 'Honda', 2019, 2);
+
+INSERT INTO funcionario (nome, cargo, telefone, email)
+VALUES
+('Carlos Alberto', 'Mecânico', '(11) 91234-5678', 'carlos.alberto@email.com'),
+('Fernanda Lima', 'Auxiliar', '(21) 92345-6789', 'fernanda.lima@email.com');
+
+INSERT INTO servico (tipo, data, valor, id_veiculo, id_funcionario)
+VALUES
+('Troca de óleo', '2023-09-01', 200.00, 1, 1),
+('Revisão de freios', '2023-09-10', 350.00, 2, 2);
+
+INSERT INTO peca (nome, descricao, preco, quantidade_estoque)
+VALUES
+('Filtro de óleo', 'Filtro para motor', 50.00, 30),
+('Pastilha de freio', 'Pastilha de freio', 150.00, 20);
+
+INSERT INTO servico_peca (id_servico, id_peca, quantidade_usada)
+VALUES
+(1, 1, 1),
+(2, 2, 2);
+
+
+SELECT
+    c.nome AS cliente_nome,
+    c.telefone AS cliente_telefone,
+    c.email AS cliente_email,
+    v.placa AS veiculo_placa,
+    v.modelo AS veiculo_modelo,
+    v.marca AS veiculo_marca,
+    s.tipo AS servico_tipo,
+    s.data AS servico_data,
+    s.valor AS servico_valor,
+    f.nome AS funcionario_nome,
+    f.cargo AS funcionario_cargo,
+    p.nome AS peca_nome,
+    sp.quantidade_usada AS peca_quantidade
+FROM
+    cliente c
+LEFT JOIN
+    veiculo v ON c.id = v.id_cliente
+LEFT JOIN
+    servico s ON v.id = s.id_veiculo
+LEFT JOIN
+    funcionario f ON s.id_funcionario = f.id
+LEFT JOIN
+    servico_peca sp ON s.id = sp.id_servico
+LEFT JOIN
+    peca p ON sp.id_peca = p.id;
